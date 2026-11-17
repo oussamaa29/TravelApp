@@ -1,3 +1,4 @@
+import { auth } from "@/utils/auth";
 import { config } from "@/utils/env";
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -84,22 +85,27 @@ const syncQueue = async (): Promise<{synced: number; failed: number}> => {
 
     for (const action of queue) {
         try {
-            const response = await fetch(`${config.mockBackendUrl}${action.endpoint}`, {
-            method: action.method,
-            body: JSON.stringify(action.payload),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+            // auth.fetch ajoute le jeton (et le rafraîchit si besoin) : sans lui, l'API
+            // refusait chaque action en attente et elles restaient bloquées dans la file.
+            const response = await auth.fetch(`${config.mockBackendUrl}${action.endpoint}`, {
+                method: action.method,
+                body: JSON.stringify(action.payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        if (response.ok) {
-            await removeFromQueue(action.id);
-            synced++;
-            console.log(`✅ synced: ${action.type}`);
-        }
+            if (response.ok) {
+                await removeFromQueue(action.id);
+                synced++;
+                console.log(`✅ synced: ${action.type}`);
+            } else {
+                failed++;
+                console.log(`❌ failed: ${action.type} (HTTP ${response.status})`);
+            }
         } catch (error) {
             failed++;
-            console.log(`✅ failed: ${action.type}`, error);
+            console.log(`❌ failed: ${action.type}`, error);
         }
     }
     return {synced, failed};
