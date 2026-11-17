@@ -1,0 +1,17 @@
+{
+  "name": "travelmate-mock-backend",
+  "private": true,
+  "type": "module",
+  "description": "Backend de démonstration pour TravelMate (données en mémoire)",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "multer": "^2.5.0"
+  }
+}
